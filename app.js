@@ -108,3 +108,39 @@ streamButton.addEventListener('click', () => {
 });
 
 document.querySelector('#year').textContent = new Date().getFullYear();
+
+const contactDialog = document.querySelector('#contact-dialog');
+document.querySelector('[data-open-contact]').addEventListener('click', (event) => {
+  if (typeof contactDialog.showModal !== 'function') return;
+  event.preventDefault();
+  contactDialog.showModal();
+});
+
+contactDialog.addEventListener('click', (event) => {
+  if (event.target !== contactDialog) return;
+  const bounds = contactDialog.getBoundingClientRect();
+  if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) contactDialog.close();
+});
+
+document.querySelectorAll('[data-copy-source]').forEach((button) => {
+  let resetTimer;
+  button.addEventListener('click', async () => {
+    const source = document.getElementById(button.dataset.copySource);
+    const status = document.getElementById(button.getAttribute('aria-describedby'));
+    const text = source.innerText.trim();
+    clearTimeout(resetTimer);
+    try {
+      await navigator.clipboard.writeText(text);
+      status.textContent = 'Copied.';
+    } catch {
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(source);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      status.textContent = 'Text selected. You can copy it manually.';
+    } finally {
+      resetTimer = setTimeout(() => { status.textContent = ''; }, 5000);
+    }
+  });
+});
